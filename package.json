@@ -1,0 +1,7 @@
+{
+  "name": "sibyl-legal-case-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter frontend --filter backend dev"
+  }
+}
