@@ -1,14 +1,78 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum UserRole {
+  CLIENT
+  LAWYER
+}
+
+enum CaseStatus {
+  OPEN
+  CLOSED
+}
+
+enum CaseAccessStatus {
+  REQUESTED
+  GRANTED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+
+  casesOwned   Case[]        @relation("ClientCases")
+  caseAccesses CaseAccess[]
+  documents    Document[]
+}
+
+model Case {
+  id            String      @id @default(uuid())
+  title         String
+  category      String
+  status        CaseStatus  @default(OPEN)
+  createdAt     DateTime    @default(now())
+
+  ownerClientId String
+  ownerClient   User        @relation("ClientCases", fields: [ownerClientId], references: [id])
+
+  accesses      CaseAccess[]
+  documents     Document[]
+}
+
+model CaseAccess {
+  id          String           @id @default(uuid())
+  status      CaseAccessStatus
+  requestedAt DateTime         @default(now())
+  grantedAt   DateTime?
+
+  caseId      String
+  case        Case             @relation(fields: [caseId], references: [id])
+
+  lawyerId    String
+  lawyer      User             @relation(fields: [lawyerId], references: [id])
+
+  @@unique([caseId, lawyerId])
+}
+
+model Document {
+  id               String   @id @default(uuid())
+  originalFilename String
+  storedFilename   String
+  mimeType         String
+  size             Int
+  createdAt        DateTime @default(now())
+
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id])
+
+  uploadedByUserId String
+  uploadedBy       User     @relation(fields: [uploadedByUserId], references: [id])
 }
