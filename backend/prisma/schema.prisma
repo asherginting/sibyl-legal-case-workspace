@@ -23,26 +23,30 @@ enum CaseAccessStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      UserRole
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ownedCases Case[]
-  caseAccess  CaseAccess[]
+  id                String       @id @default(uuid())
+  email             String       @unique
+  password          String
+  role              UserRole
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  ownedCases        Case[]
+  caseAccess        CaseAccess[]
+  uploadedDocuments Document[]
 }
 
 model Case {
-  id        String     @id @default(uuid())
-  title     String
-  category  String
-  status    CaseStatus
-  ownerId   String
-  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  access    CaseAccess[]
+  id           String       @id @default(uuid())
+  title        String
+  description  String?
+  category     String
+  jurisdiction String?
+  status       CaseStatus
+  ownerId      String
+  owner        User         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  access       CaseAccess[]
+  documents    Document[]
 
   @@index([ownerId])
   @@index([status])
@@ -50,17 +54,29 @@ model Case {
 }
 
 model CaseAccess {
-  id        String            @id @default(uuid())
+  id        String           @id @default(uuid())
   caseId    String
   lawyerId  String
   status    CaseAccessStatus
-  case      Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  lawyer    User              @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  case      Case             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  lawyer    User             @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   @@unique([caseId, lawyerId])
   @@index([lawyerId])
 }
 
+model Document {
+  id           String   @id @default(uuid())
+  caseId       String
+  originalName String
+  mimeType     String
+  size         Int
+  uploadedById String
+  createdAt    DateTime @default(now())
+  case         Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
 
+  @@index([caseId])
+}

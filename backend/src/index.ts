@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 
 import { loginHandler, meHandler, logoutHandler } from './auth/auth.controller'
 import { requireAuth } from './auth/auth.middleware'
+import { browseCasesHandler } from './cases/cases.controller'
 
 dotenv.config()
 const app = express();
@@ -20,6 +21,7 @@ app.use(cookieParser())
 app.post('/auth/login', loginHandler)
 app.post('/auth/logout', logoutHandler)
 app.get('/auth/me', requireAuth, meHandler)
+app.get('/cases', requireAuth, browseCasesHandler)
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

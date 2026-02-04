@@ -23,7 +23,6 @@ export function requireAuth(
       role: decoded.role,
     }
 
-    // attach ke request
     ;(req as any).user = user
 
     next()
