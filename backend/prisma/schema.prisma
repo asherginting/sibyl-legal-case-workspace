@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -17,62 +18,49 @@ enum CaseStatus {
 }
 
 enum CaseAccessStatus {
-  REQUESTED
   GRANTED
+  REVOKED
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  role         UserRole
-  createdAt    DateTime @default(now())
-
-  casesOwned   Case[]        @relation("ClientCases")
-  caseAccesses CaseAccess[]
-  documents    Document[]
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ownedCases Case[]
+  caseAccess  CaseAccess[]
 }
 
 model Case {
-  id            String      @id @default(uuid())
-  title         String
-  category      String
-  status        CaseStatus  @default(OPEN)
-  createdAt     DateTime    @default(now())
+  id        String     @id @default(uuid())
+  title     String
+  category  String
+  status    CaseStatus
+  ownerId   String
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  access    CaseAccess[]
 
-  ownerClientId String
-  ownerClient   User        @relation("ClientCases", fields: [ownerClientId], references: [id])
-
-  accesses      CaseAccess[]
-  documents     Document[]
+  @@index([ownerId])
+  @@index([status])
+  @@index([category])
 }
 
 model CaseAccess {
-  id          String           @id @default(uuid())
-  status      CaseAccessStatus
-  requestedAt DateTime         @default(now())
-  grantedAt   DateTime?
-
-  caseId      String
-  case        Case             @relation(fields: [caseId], references: [id])
-
-  lawyerId    String
-  lawyer      User             @relation(fields: [lawyerId], references: [id])
+  id        String            @id @default(uuid())
+  caseId    String
+  lawyerId  String
+  status    CaseAccessStatus
+  case      Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  lawyer    User              @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@unique([caseId, lawyerId])
+  @@index([lawyerId])
 }
 
-model Document {
-  id               String   @id @default(uuid())
-  originalFilename String
-  storedFilename   String
-  mimeType         String
-  size             Int
-  createdAt        DateTime @default(now())
 
-  caseId           String
-  case             Case     @relation(fields: [caseId], references: [id])
-
-  uploadedByUserId String
-  uploadedBy       User     @relation(fields: [uploadedByUserId], references: [id])
-}
