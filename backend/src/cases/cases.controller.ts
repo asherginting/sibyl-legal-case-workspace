@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { browseCases, getCaseDetail, requestAccess, withdrawAccess  } from './cases.service'
+import { browseCases, getCaseDetail, requestAccess, withdrawAccess, createCase  } from './cases.service'
 
 export async function browseCasesHandler(req: Request, res: Response) {
   const user = (req as any).user
@@ -66,6 +66,33 @@ export async function withdrawAccessHandler(
     })
   } catch (err: any) {
     res.status(err.status || 500).json({
+      response_code: err.status || 500,
+      response_message: err.message || 'Internal Server Error',
+    })
+  }
+}
+
+export async function createCaseHandler(req: Request, res: Response) {
+  try {
+    const user = (req as any).user
+    const { title, description, category, jurisdiction } = req.body
+
+    const legalCase = await createCase(
+      { title, description, category, jurisdiction },
+      user
+    )
+
+    return res.status(201).json({
+      response_code: 201,
+      response_message: 'Case created',
+      data: {
+        id: legalCase.id,
+        title: legalCase.title,
+        status: legalCase.status,
+      },
+    })
+  } catch (err: any) {
+    return res.status(err.status || 500).json({
       response_code: err.status || 500,
       response_message: err.message || 'Internal Server Error',
     })

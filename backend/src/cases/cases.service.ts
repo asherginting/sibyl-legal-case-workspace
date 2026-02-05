@@ -3,6 +3,7 @@ import {
   UserRole,
   CaseAccessStatus,
   Prisma,
+  CaseStatus,
 } from "@prisma/client";
 import { BrowseCasesQuery, CaseCardDTO, CaseDetailDTO } from "./cases.types";
 
@@ -228,5 +229,36 @@ export async function withdrawAccess(caseId: string, user: any) {
   })
 
   return { message: 'Access withdrawn' }
+}
+
+export async function createCase(
+  input: {
+    title: string
+    description?: string
+    category: string
+    jurisdiction?: string
+  },
+  user: { id: string; role: UserRole }
+) {
+  if (user.role !== UserRole.CLIENT) {
+    throw { status: 403, message: 'FORBIDDEN' }
+  }
+
+  if (!input.title || !input.category) {
+    throw { status: 400, message: 'INVALID_INPUT' }
+  }
+
+  const legalCase = await prisma.case.create({
+    data: {
+      title: input.title,
+      description: input.description ?? null,
+      category: input.category,
+      jurisdiction: input.jurisdiction ?? null,
+      status: CaseStatus.OPEN,
+      ownerId: user.id,
+    },
+  })
+
+  return legalCase
 }
 
