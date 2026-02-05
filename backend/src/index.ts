@@ -20,6 +20,8 @@ import {
   downloadDocumentHandler,
 } from "./documents/documents.controller";
 import { upload } from "./documents/upload.middleware";
+import swaggerUi from "swagger-ui-express";
+import { openApiSpec } from "./docs/openapi";
 
 dotenv.config();
 const app = express();
@@ -33,6 +35,16 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openApiSpec, {
+    swaggerOptions: {
+      withCredentials: true,
+      persistAuthorization: true,
+    },
+  })
+);
 app.post("/auth/login", loginHandler);
 app.post("/auth/logout", logoutHandler);
 app.get("/auth/me", requireAuth, meHandler);
@@ -51,10 +63,10 @@ app.post(
   uploadDocumentHandler,
 );
 app.get(
-  '/cases/:id/documents',
+  "/cases/:id/documents/:documentId",
   requireAuth,
   downloadDocumentHandler
-)
+);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

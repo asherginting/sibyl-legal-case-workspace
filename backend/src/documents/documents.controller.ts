@@ -50,20 +50,20 @@ export async function uploadDocumentHandler(req: Request, res: Response) {
 
 export async function downloadDocumentHandler(req: Request, res: Response) {
   try {
-    const documentId = String(req.params.id)
-    const user = (req as any).user
+    const documentId = String(req.params.documentId);
+    const user = (req as any).user;
 
     const { filePath, originalName } = await downloadDocument(
       documentId,
       user
-    )
+    );
 
-    res.download(filePath, originalName)
+    res.download(filePath, originalName);
   } catch (err: any) {
     res.status(err.status || 500).json({
       response_code: err.status || 500,
-      response_message: err.message || 'Internal Server Error',
-    })
+      response_message: err.message || "Internal Server Error",
+    });
   }
 }
 
