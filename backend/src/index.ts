@@ -1,31 +1,42 @@
-import express from "express"
-import cors from "cors"
-import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 
-import { loginHandler, meHandler, logoutHandler } from './auth/auth.controller'
-import { requireAuth } from './auth/auth.middleware'
-import { browseCasesHandler, getCaseDetailHandler, requestAccessHandler, withdrawAccessHandler, createCaseHandler } from './cases/cases.controller'
+import { loginHandler, meHandler, logoutHandler } from "./auth/auth.controller";
+import { requireAuth } from "./auth/auth.middleware";
+import {
+  browseCasesHandler,
+  getCaseDetailHandler,
+  requestAccessHandler,
+  withdrawAccessHandler,
+  createCaseHandler,
+  updateCaseHandler,
+  deleteCaseHandler,
+} from "./cases/cases.controller";
 
-dotenv.config()
+dotenv.config();
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
-}))
-app.use(express.json())
-app.use(cookieParser())
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+);
+app.use(express.json());
+app.use(cookieParser());
 
-
-app.post('/auth/login', loginHandler)
-app.post('/auth/logout', logoutHandler)
-app.get('/auth/me', requireAuth, meHandler)
-app.get('/cases', requireAuth, browseCasesHandler)
-app.post('/cases', requireAuth, createCaseHandler)
-app.get('/cases/:id', requireAuth, getCaseDetailHandler)
-app.post('/cases/:id/access/request', requireAuth, requestAccessHandler)
-app.post('/cases/:id/access/withdraw', requireAuth, withdrawAccessHandler)
+app.post("/auth/login", loginHandler);
+app.post("/auth/logout", logoutHandler);
+app.get("/auth/me", requireAuth, meHandler);
+app.get("/cases", requireAuth, browseCasesHandler);
+app.post("/cases", requireAuth, createCaseHandler);
+app.get("/cases/:id", requireAuth, getCaseDetailHandler);
+app.patch("/cases/:id", requireAuth, updateCaseHandler);
+app.delete("/cases/:id", requireAuth, deleteCaseHandler);
+app.post("/cases/:id/access/request", requireAuth, requestAccessHandler);
+app.post("/cases/:id/access/withdraw", requireAuth, withdrawAccessHandler);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
