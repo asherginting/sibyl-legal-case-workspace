@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 
 import { loginHandler, meHandler, logoutHandler } from './auth/auth.controller'
 import { requireAuth } from './auth/auth.middleware'
-import { browseCasesHandler, getCaseDetailHandler } from './cases/cases.controller'
+import { browseCasesHandler, getCaseDetailHandler, requestAccessHandler, withdrawAccessHandler } from './cases/cases.controller'
 
 dotenv.config()
 const app = express();
@@ -23,6 +23,8 @@ app.post('/auth/logout', logoutHandler)
 app.get('/auth/me', requireAuth, meHandler)
 app.get('/cases', requireAuth, browseCasesHandler)
 app.get('/cases/:id', requireAuth, getCaseDetailHandler)
+app.post('/cases/:id/access/request', requireAuth, requestAccessHandler)
+app.post('/cases/:id/access/withdraw', requireAuth, withdrawAccessHandler)
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
