@@ -14,6 +14,12 @@ import {
   updateCaseHandler,
   deleteCaseHandler,
 } from "./cases/cases.controller";
+import {
+  listDocumentsHandler,
+  uploadDocumentHandler,
+  downloadDocumentHandler,
+} from "./documents/documents.controller";
+import { upload } from "./documents/upload.middleware";
 
 dotenv.config();
 const app = express();
@@ -37,6 +43,18 @@ app.patch("/cases/:id", requireAuth, updateCaseHandler);
 app.delete("/cases/:id", requireAuth, deleteCaseHandler);
 app.post("/cases/:id/access/request", requireAuth, requestAccessHandler);
 app.post("/cases/:id/access/withdraw", requireAuth, withdrawAccessHandler);
+app.get("/cases/:id/documents", requireAuth, listDocumentsHandler);
+app.post(
+  "/cases/:id/documents",
+  requireAuth,
+  upload.single("file"),
+  uploadDocumentHandler,
+);
+app.get(
+  '/cases/:id/documents',
+  requireAuth,
+  downloadDocumentHandler
+)
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
