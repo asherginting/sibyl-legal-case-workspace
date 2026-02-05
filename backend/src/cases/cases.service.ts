@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole, CaseAccessStatus, Prisma } from '@prisma/client'
-import { BrowseCasesQuery, CaseCardDTO } from './cases.types'
+import { BrowseCasesQuery, CaseCardDTO, CaseDetailDTO  } from './cases.types'
 
 const prisma = new PrismaClient()
 
@@ -99,5 +99,53 @@ export async function browseCases(
       limit,
       total,
     },
+  }
+}
+
+export async function getCaseDetail(
+  caseId: string,
+  user: { id: string; role: UserRole }
+): Promise<CaseDetailDTO> {
+  const caseRow = await prisma.case.findUnique({
+    where: { id: caseId },
+    include: {
+      owner: true,
+      access: true,
+    },
+  })
+
+  if (!caseRow) {
+    throw { status: 404, message: 'CASE_NOT_FOUND' }
+  }
+
+  if (user.role === UserRole.CLIENT) {
+    if (caseRow.ownerId !== user.id) {
+      throw { status: 403, message: 'FORBIDDEN' }
+    }
+  }
+
+  if (user.role === UserRole.LAWYER) {
+    const granted = caseRow.access.some(
+      (a) =>
+        a.lawyerId === user.id &&
+        a.status === CaseAccessStatus.GRANTED
+    )
+
+    if (!granted) {
+      throw { status: 404, message: 'CASE_NOT_FOUND' }
+    }
+  }
+
+  return {
+    id: caseRow.id,
+    title: caseRow.title,
+    status: caseRow.status,
+    category: caseRow.category,
+    jurisdiction: caseRow.jurisdiction ?? '',
+    createdAt: caseRow.createdAt,
+
+    summary: caseRow.description ?? '',
+    parties: [],
+    keyEvents: [],
   }
 }

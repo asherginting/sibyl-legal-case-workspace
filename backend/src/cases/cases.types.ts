@@ -31,3 +31,27 @@ export interface CaseCardDTO {
     canWithdraw: boolean
   }
 }
+
+export interface CaseDetailDTO {
+  id: string
+  title: string
+  status: string
+  category: string
+  jurisdiction: string
+  createdAt: Date
+
+  summary: string
+  parties: {
+    name: string
+    role: string
+  }[]
+
+  keyEvents: {
+    date: string
+    description: string
+    documents: {
+      id: string
+      name: string
+    }[]
+  }[]
+}
