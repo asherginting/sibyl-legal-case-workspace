@@ -1,3 +1,8 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 
@@ -6,6 +11,27 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
+          credentials: "include",
+        });
+
+        if (res.status === 401) {
+          router.replace("/sign-in");
+          return;
+        }
+      } catch {
+        router.replace("/sign-in");
+      }
+    }
+
+    checkAuth();
+  }, [router]);
+
   return (
     <div className="flex min-h-screen bg-weak">
       <Sidebar />

@@ -14,11 +14,11 @@ async function main() {
   await prisma.case.deleteMany()
   await prisma.user.deleteMany()
 
-  const passwordHash = await bcrypt.hash('password123', 10)
+  const passwordHash = await bcrypt.hash('Testing123', 10)
 
   const client = await prisma.user.create({
     data: {
-      email: 'client@example.com',
+      email: 'client@sibyl.sg',
       password: passwordHash,
       role: UserRole.CLIENT,
     },
@@ -26,7 +26,7 @@ async function main() {
 
   const lawyer = await prisma.user.create({
     data: {
-      email: 'lawyer@example.com',
+      email: 'lawyer@sibyl.sg',
       password: passwordHash,
       role: UserRole.LAWYER,
     },
