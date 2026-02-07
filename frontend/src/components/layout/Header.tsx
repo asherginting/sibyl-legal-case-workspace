@@ -9,9 +9,16 @@ const TITLE_MAP: Record<string, string> = {
   "/messages": "Messages",
 };
 
+const PLACEHOLDER_MAP: Record<string, string> = {
+  "/browse-cases": "Search cases...",
+  "/my-cases": "Search My cases...",
+  "/messages": "Search messages...",
+};
+
 export default function Header() {
   const pathname = usePathname();
   const title = TITLE_MAP[pathname] ?? "";
+  const placeholder = PLACEHOLDER_MAP[pathname] ?? "";
 
   return (
     <div className="py-4 px-6 border-b border-faded flex items-center justify-between">
@@ -21,7 +28,7 @@ export default function Header() {
           <Search className="w-5 h-5 text-muted shrink-0" />
           <input
             type="text"
-            placeholder="Search cases..."
+            placeholder={placeholder }
             className="flex-1 text-sm font-normal outline-none bg-transparent placeholder:text-muted text-muted"
           />
         </div>
