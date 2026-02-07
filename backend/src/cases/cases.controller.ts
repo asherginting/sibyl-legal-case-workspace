@@ -7,6 +7,8 @@ import {
   createCase,
   updateCase,
   deleteCase,
+  grantAccess,
+  revokeAccess,
 } from "./cases.service";
 
 export async function browseCasesHandler(req: Request, res: Response) {
@@ -149,3 +151,44 @@ export async function deleteCaseHandler(req: Request, res: Response) {
     });
   }
 }
+
+export async function grantAccessHandler(req: Request, res: Response) {
+  try {
+    const caseId = String(req.params.id);
+    const { lawyerId } = req.body;
+    const user = (req as any).user;
+
+    const result = await grantAccess(caseId, lawyerId, user);
+
+    res.json({
+      response_code: 200,
+      response_message: result.message,
+    });
+  } catch (err: any) {
+    res.status(err.status || 500).json({
+      response_code: err.status || 500,
+      response_message: err.message,
+    });
+  }
+}
+
+export async function revokeAccessHandler(req: Request, res: Response) {
+  try {
+    const caseId = String(req.params.id);
+    const lawyerId = String(req.params.lawyerId);
+    const user = (req as any).user;
+
+    const result = await revokeAccess(caseId, lawyerId, user);
+
+    res.json({
+      response_code: 200,
+      response_message: result.message,
+    });
+  } catch (err: any) {
+    res.status(err.status || 500).json({
+      response_code: err.status || 500,
+      response_message: err.message,
+    });
+  }
+}
+

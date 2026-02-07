@@ -189,6 +189,18 @@ PATCH /cases/{caseId}
 DELETE /cases/{caseId}
 ```
 
+### Grant Lawyer Access (CLIENT only)
+
+```
+POST /cases/{caseId}/access/grant
+```
+
+### Revoke Lawyer Access (CLIENT only)
+
+```
+DELETE /cases/{caseId}/access/{lawyerId}
+```
+
 ---
 
 ## Case Access (LAWYER)

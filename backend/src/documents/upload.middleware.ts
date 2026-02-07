@@ -15,17 +15,17 @@ const ALLOWED_MIME_TYPES = [
 export const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
-  const uploadDir = path.join(process.cwd(), "uploads");
+      const uploadDir = path.join(process.cwd(), "uploads");
 
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
 
-  cb(null, uploadDir);
-},
+      cb(null, uploadDir);
+    },
     filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      cb(null, `${randomUUID()}${ext}`);
+      const storedName = `${randomUUID()}${path.extname(file.originalname)}`;
+      cb(null, storedName);
     },
   }),
   limits: {

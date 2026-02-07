@@ -329,3 +329,66 @@ export async function deleteCase(
 
   return { message: "Case deleted" };
 }
+
+export async function grantAccess(
+  caseId: string,
+  lawyerId: string,
+  user: { id: string; role: UserRole },
+) {
+  if (user.role !== UserRole.CLIENT) {
+    throw { status: 403, message: "FORBIDDEN" };
+  }
+
+  const legalCase = await prisma.case.findUnique({ where: { id: caseId } });
+
+  if (!legalCase) {
+    throw { status: 404, message: "CASE_NOT_FOUND" };
+  }
+
+  if (legalCase.ownerId !== user.id) {
+    throw { status: 403, message: "NOT_OWNER" };
+  }
+
+  await prisma.caseAccess.upsert({
+    where: {
+      caseId_lawyerId: { caseId, lawyerId },
+    },
+    update: { status: CaseAccessStatus.GRANTED },
+    create: {
+      caseId,
+      lawyerId,
+      status: CaseAccessStatus.GRANTED,
+    },
+  });
+
+  return { message: "Access granted" };
+}
+
+export async function revokeAccess(
+  caseId: string,
+  lawyerId: string,
+  user: { id: string; role: UserRole },
+) {
+  if (user.role !== UserRole.CLIENT) {
+    throw { status: 403, message: "FORBIDDEN" };
+  }
+
+  const legalCase = await prisma.case.findUnique({ where: { id: caseId } });
+
+  if (!legalCase) {
+    throw { status: 404, message: "CASE_NOT_FOUND" };
+  }
+
+  if (legalCase.ownerId !== user.id) {
+    throw { status: 403, message: "NOT_OWNER" };
+  }
+
+  await prisma.caseAccess.delete({
+    where: {
+      caseId_lawyerId: { caseId, lawyerId },
+    },
+  });
+
+  return { message: "Access revoked" };
+}
+

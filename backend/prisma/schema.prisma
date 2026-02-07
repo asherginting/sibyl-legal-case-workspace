@@ -71,6 +71,7 @@ model Document {
   id           String   @id @default(uuid())
   caseId       String
   originalName String
+  storedName   String
   mimeType     String
   size         Int
   uploadedById String

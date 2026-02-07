@@ -194,4 +194,101 @@ export const casesPaths: OpenAPIV3.PathsObject = {
       },
     },
   },
+
+  "/cases/{id}/access/grant": {
+    post: {
+      tags: ["Cases"],
+      summary: "Grant lawyer access to case (CLIENT only)",
+      description: "Client grants access to a lawyer for a specific case",
+      security: [{ cookieAuth: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          description: "Case ID",
+          schema: { type: "string" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["lawyerId"],
+              properties: {
+                lawyerId: {
+                  type: "string",
+                  format: "uuid",
+                  description: "Lawyer user ID",
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        "200": {
+          description: "Access granted",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  response_code: { type: "number" },
+                  response_message: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        "403": { description: "Forbidden" },
+        "404": { description: "Case not found" },
+      },
+    },
+  },
+
+  "/cases/{id}/access/{lawyerId}": {
+    delete: {
+      tags: ["Cases"],
+      summary: "Revoke lawyer access from case (CLIENT only)",
+      description: "Client revokes a lawyer's access to a case",
+      security: [{ cookieAuth: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          description: "Case ID",
+          schema: { type: "string" },
+        },
+        {
+          name: "lawyerId",
+          in: "path",
+          required: true,
+          description: "Lawyer user ID",
+          schema: { type: "string", format: "uuid" },
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Access revoked",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  response_code: { type: "number" },
+                  response_message: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        "403": { description: "Forbidden" },
+        "404": { description: "Case or access not found" },
+      },
+    },
+  },
 };

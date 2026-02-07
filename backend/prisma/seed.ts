@@ -40,16 +40,20 @@ async function main() {
       category: 'Employment Law',
       jurisdiction: 'Singapore',
       daysAgo: 3,
+      status: CaseStatus.OPEN,
       access: CaseAccessStatus.GRANTED,
+      withDocument: true,
     },
     {
       title: 'Child Custody & Access Arrangement',
       description:
-        'A 34-year-old female professional was dismissed without notice following a company restructuring.',
+        'Dispute regarding custody and access rights following divorce proceedings.',
       category: 'Family Law',
       jurisdiction: 'Singapore',
       daysAgo: 7,
+      status: CaseStatus.OPEN,
       access: CaseAccessStatus.REVOKED,
+      withDocument: false,
     },
     {
       title: 'Non-Payment in Service Agreement',
@@ -58,16 +62,20 @@ async function main() {
       category: 'Commercial',
       jurisdiction: 'Singapore',
       daysAgo: 5,
-      access: CaseAccessStatus.REVOKED,
+      status: CaseStatus.OPEN,
+      access: null,
+      withDocument: false,
     },
     {
       title: 'Trademark Infringement Advice',
       description:
-        'An entrepreneur seeks legal advice on potential infringement claims.',
+        'An entrepreneur seeks legal advice on potential trademark infringement claims.',
       category: 'Intellectual Property',
       jurisdiction: 'Singapore',
       daysAgo: 2,
-      access: CaseAccessStatus.REVOKED,
+      status: CaseStatus.CLOSED, 
+      access: CaseAccessStatus.GRANTED,
+      withDocument: false,
     },
   ]
 
@@ -81,23 +89,41 @@ async function main() {
         description: item.description,
         category: item.category,
         jurisdiction: item.jurisdiction,
-        status: CaseStatus.OPEN,
+        status: item.status,
         ownerId: client.id,
         createdAt,
       },
     })
 
-    await prisma.caseAccess.create({
-      data: {
-        caseId: caseRow.id,
-        lawyerId: lawyer.id,
-        status: item.access,
-        createdAt,
-      },
-    })
+    if (item.access) {
+      await prisma.caseAccess.create({
+        data: {
+          caseId: caseRow.id,
+          lawyerId: lawyer.id,
+          status: item.access,
+          createdAt,
+        },
+      })
+    }
+
+    if (item.withDocument) {
+      await prisma.document.create({
+        data: {
+          caseId: caseRow.id,
+          originalName: 'file-sample_150kB.pdf',
+          storedName: 'file-sample_150kB.pdf',
+          mimeType: 'application/pdf',
+          size: 150000,
+          uploadedById: client.id,
+          createdAt,
+        },
+      })
+    }
   }
 
-  console.log('Seed demo data ready')
+  console.log('✅ Seed demo data ready')
+  console.log('Client login  → client@example.com / password123')
+  console.log('Lawyer login  → lawyer@example.com / password123')
 }
 
 main()

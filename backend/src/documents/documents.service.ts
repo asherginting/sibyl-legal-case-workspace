@@ -1,7 +1,7 @@
 import { PrismaClient, UserRole, CaseAccessStatus } from "@prisma/client";
 import type { UploadedFile } from "./document.types";
-import path from 'path'
-import fs from 'fs'
+import path from "path";
+import fs from "fs";
 
 const prisma = new PrismaClient();
 
@@ -87,6 +87,7 @@ export async function uploadDocument(
     data: {
       caseId,
       originalName: file.originalname,
+      storedName: file.filename,
       mimeType: file.mimetype,
       size: file.size,
       uploadedById: user.id,
@@ -98,7 +99,7 @@ export async function uploadDocument(
 
 export async function downloadDocument(
   documentId: string,
-  user: { id: string; role: UserRole }
+  user: { id: string; role: UserRole },
 ) {
   const document = await prisma.document.findUnique({
     where: { id: documentId },
@@ -114,32 +115,28 @@ export async function downloadDocument(
         },
       },
     },
-  })
+  });
 
   if (!document) {
-    throw { status: 404, message: 'DOCUMENT_NOT_FOUND' }
+    throw { status: 404, message: "DOCUMENT_NOT_FOUND" };
   }
 
-  const legalCase = document.case
-  const isOwner = legalCase.ownerId === user.id
-  const hasAccess = legalCase.access.length > 0
+  const legalCase = document.case;
+  const isOwner = legalCase.ownerId === user.id;
+  const hasAccess = legalCase.access.length > 0;
 
   if (!isOwner && !hasAccess) {
-    throw { status: 403, message: 'FORBIDDEN' }
+    throw { status: 403, message: "FORBIDDEN" };
   }
 
-  const filePath = path.join(
-    process.cwd(),
-    'uploads',
-    `${document.id}${path.extname(document.originalName)}`
-  )
+  const filePath = path.join(process.cwd(), "uploads", document.storedName);
 
   if (!fs.existsSync(filePath)) {
-    throw { status: 404, message: 'FILE_NOT_FOUND' }
+    throw { status: 404, message: "FILE_NOT_FOUND" };
   }
 
   return {
     filePath,
     originalName: document.originalName,
-  }
+  };
 }

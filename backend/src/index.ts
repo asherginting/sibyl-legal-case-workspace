@@ -13,6 +13,8 @@ import {
   createCaseHandler,
   updateCaseHandler,
   deleteCaseHandler,
+  grantAccessHandler,
+  revokeAccessHandler,
 } from "./cases/cases.controller";
 import {
   listDocumentsHandler,
@@ -67,6 +69,8 @@ app.get(
   requireAuth,
   downloadDocumentHandler
 );
+app.post("/cases/:id/access/grant", requireAuth, grantAccessHandler);
+app.delete("/cases/:id/access/:lawyerId", requireAuth, revokeAccessHandler);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
