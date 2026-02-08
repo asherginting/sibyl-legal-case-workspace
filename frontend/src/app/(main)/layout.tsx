@@ -1,22 +1,11 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 
-export default async function MainLayout({
+export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token");
-
-  if (!token) {
-    redirect("/sign-in");
-  }
-
   return (
     <div className="flex min-h-screen bg-weak">
       <Sidebar />

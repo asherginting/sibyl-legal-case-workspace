@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type User = {
   id: string;
@@ -22,12 +27,39 @@ export function AuthProvider({
   children: React.ReactNode;
 }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
+          {
+            credentials: "include",
+          },
+        );
+
+        if (res.ok) {
+          const json = await res.json();
+          setUser(json.data.user);
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMe();
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        loading: false,
+        loading,
         setUser,
         clear: () => setUser(null),
       }}

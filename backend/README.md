@@ -1,28 +1,36 @@
 # Sibyl Legal Case Workspace Backend
 
-Backend API for **Sibyl Legal Case Workspace Backend**.
-This service handles authentication, case management, document upload/download, and access control between clients and lawyers.
+Backend API for **Sibyl Legal Case Workspace**.
+
+This service handles:
+- Authentication (cookie-based JWT)
+- Legal case management
+- Lawyer access requests & approvals
+- Document upload & download
+- Role-based access control (Client & Lawyer)
+
+The backend is designed to be **production-ready** and supports both local development and deployed environments.
 
 ---
 
 ## Tech Stack
 
-* **Node.js** + **Express**
-* **TypeScript**
-* **Prisma ORM**
-* **PostgreSQL**
-* **JWT (Cookie-based Authentication)**
-* **Multer** (file upload)
-* **Swagger / OpenAPI 3.0**
+- **Node.js** + **Express**
+- **TypeScript**
+- **Prisma ORM**
+- **PostgreSQL**
+- **JWT (HTTP-only Cookie Authentication)**
+- **Multer** (file upload)
+- **Swagger / OpenAPI 3.0**
 
 ---
 
-## Requirements
+### Requirements
 
-* Node.js ≥ 18
-* pnpm ≥ 8
-* PostgreSQL database
-* Docker
+- Node.js ≥ 18
+- pnpm ≥ 8
+- PostgreSQL
+- Docker (for local and production)
 
 ---
 
@@ -41,9 +49,7 @@ Create a `.env` file in the `backend` folder:
 ```env
 PORT=4000
 NODE_ENV=development
-
 DATABASE_URL=postgresql://user:password@localhost:5432/sibyl
-
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=15m
 ```
@@ -73,6 +79,17 @@ pnpm prisma db seed
 ```
 
 ---
+
+Default Seed Accounts
+When seeding the database, the following users are created:
+
+| Role   | Email                                     | Password   |
+| ------ | ----------------------------------------- | ---------- |
+| Client | [client@sibyl.sg](mailto:client@sibyl.sg) | Testing123 |
+| Lawyer | [lawyer@sibyl.sg](mailto:lawyer@sibyl.sg) | Testing123 |
+
+These accounts can be used for testing authentication and role-based access.
+
 
 ## Running the Server
 
@@ -110,11 +127,31 @@ Swagger can be used **as a Postman replacement**:
 * Cookies are stored automatically
 * All protected endpoints can be tested directly
 
+In production, Swagger is available at:
+
+https://sibyl-legal-case-workspace-production.up.railway.app/docs
+
+
 ---
 
 ## Authentication
 
 Authentication uses **JWT stored in HTTP-only cookies**.
+
+Cookie Behavior
+Cookie configuration differs by environment:
+
+| Environment | sameSite | secure |
+| ----------- | -------- | ------ |
+| Development | lax      | false  |
+| Production  | none     | true   |
+
+This allows:
+
+Local development without HTTPS
+
+Secure cross-site authentication in production (Vercel ↔ Railway)
+
 
 ### Login
 
@@ -138,12 +175,14 @@ On success, an `auth_token` cookie is set.
 ```
 GET /auth/me
 ```
+Returns the currently authenticated user.
 
 ### Logout
 
 ```
 POST /auth/logout
 ```
+Clears the authentication cookie.
 
 ---
 

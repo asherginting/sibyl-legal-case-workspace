@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sibyl Legal Case Workspace Frontend
 
-## Getting Started
+Frontend application for **Sibyl Legal Case Workspace**, built using **Next.js App Router**.
 
-First, run the development server:
+This application allows:
+- Clients to create and manage legal cases
+- Lawyers to browse cases and request access
+- Secure authentication using HTTP-only cookies
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The frontend is designed to work together with the backend API and demonstrates secure, production-ready frontend–backend integration.
+
+---
+
+## Tech Stack
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+
+---
+
+## Features
+
+- 🔐 Cookie-based authentication (no localStorage tokens)
+- 🧑‍⚖️ Role-based UI (Client & Lawyer)
+- 📂 Case browsing and filtering
+- 📄 Document upload & download
+- 🌍 Production-ready deployment on Vercel
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file in the `frontend` directory.
+
+### Local Development
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Production Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_API_BASE_URL=https://sibyl-legal-case-workspace-production.up.railway.app
+```
+All API requests must include credentials to support cookie-based authentication.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+Authentication Notes
 
-To learn more about Next.js, take a look at the following resources:
+- Authentication is handled via HTTP-only cookies
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Cookies are set by the backend on login
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Frontend requests must include credentials: "include"
 
-## Deploy on Vercel
+- No authentication data is stored in browser storage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
