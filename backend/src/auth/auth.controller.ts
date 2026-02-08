@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { login } from "./auth.service";
 
+const isProd = process.env.NODE_ENV === "production";
+
 export async function loginHandler(req: Request, res: Response) {
   const { email, password } = req.body;
 
@@ -13,8 +15,8 @@ export async function loginHandler(req: Request, res: Response) {
 
     res.cookie("auth_token", result.token, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: req.secure,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 15 * 60 * 1000,
     });
 
@@ -28,19 +30,12 @@ export async function loginHandler(req: Request, res: Response) {
   }
 }
 
-export function meHandler(req: Request, res: Response) {
-  return res.json({
-    response_code: 200,
-    response_message: "Success",
-    data: { user: (req as any).user },
-  });
-}
-
 export function logoutHandler(req: Request, res: Response) {
   res.clearCookie("auth_token", {
     httpOnly: true,
-    sameSite: "lax",
-    secure: req.secure,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
   });
+
   return res.status(204).send();
 }
