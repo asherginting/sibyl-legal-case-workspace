@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { listDocuments, uploadDocument, downloadDocument } from "./documents.service";
+import {
+  listDocuments,
+  uploadDocument,
+  downloadDocument,
+} from "./documents.service";
 
 export async function listDocumentsHandler(req: Request, res: Response) {
   try {
@@ -30,7 +34,7 @@ export async function uploadDocumentHandler(req: Request, res: Response) {
     if (!file) {
       return res.status(400).json({
         response_code: 400,
-        response_message: "FILE_REQUIRED",
+        response_message: "File Required",
       });
     }
 
@@ -53,10 +57,7 @@ export async function downloadDocumentHandler(req: Request, res: Response) {
     const documentId = String(req.params.documentId);
     const user = (req as any).user;
 
-    const { filePath, originalName } = await downloadDocument(
-      documentId,
-      user
-    );
+    const { filePath, originalName } = await downloadDocument(documentId, user);
 
     res.download(filePath, originalName);
   } catch (err: any) {
@@ -66,4 +67,3 @@ export async function downloadDocumentHandler(req: Request, res: Response) {
     });
   }
 }
-

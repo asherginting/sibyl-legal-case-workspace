@@ -4,8 +4,8 @@ export const authPaths: OpenAPIV3.PathsObject = {
   "/auth/login": {
     post: {
       tags: ["Auth"],
-      summary: "Login user",
-      description: "Authenticate user and set auth_token cookie",
+      summary: "Login user (Client or Lawyer)",
+      description: "Authenticate user and set auth_token cookie.",
       requestBody: {
         required: true,
         content: {
@@ -14,8 +14,16 @@ export const authPaths: OpenAPIV3.PathsObject = {
               type: "object",
               required: ["email", "password"],
               properties: {
-                email: { type: "string", format: "email" },
-                password: { type: "string", format: "password" },
+                email: {
+                  type: "string",
+                  format: "email",
+                  example: "user@example.com",
+                },
+                password: {
+                  type: "string",
+                  format: "password",
+                  example: "secret-password",
+                },
               },
             },
           },
@@ -26,9 +34,7 @@ export const authPaths: OpenAPIV3.PathsObject = {
           description: "Login success",
           headers: {
             "Set-Cookie": {
-              schema: {
-                type: "string",
-              },
+              schema: { type: "string" },
               description: "auth_token cookie",
             },
           },
@@ -44,7 +50,7 @@ export const authPaths: OpenAPIV3.PathsObject = {
           },
         },
         "400": {
-          description: "Missing credentials",
+          description: "Missing email or password",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -52,7 +58,7 @@ export const authPaths: OpenAPIV3.PathsObject = {
           },
         },
         "401": {
-          description: "Invalid credentials",
+          description: "Invalid email or password",
         },
       },
     },
@@ -61,7 +67,8 @@ export const authPaths: OpenAPIV3.PathsObject = {
   "/auth/me": {
     get: {
       tags: ["Auth"],
-      summary: "Get current authenticated user",
+      summary: "Get current authenticated user (Client or Lawyer)",
+      description: "Return information about the currently authenticated user.",
       security: [{ cookieAuth: [] }],
       responses: {
         "200": {
@@ -87,11 +94,11 @@ export const authPaths: OpenAPIV3.PathsObject = {
   "/auth/logout": {
     post: {
       tags: ["Auth"],
-      summary: "Logout user",
-      description: "Clear auth_token cookie",
+      summary: "Logout user (Client or Lawyer)",
+      description: "Logout current user and clear auth_token cookie.",
       responses: {
         "204": {
-          description: "Logged out",
+          description: "Logged out successfully",
         },
       },
     },

@@ -18,6 +18,7 @@ enum CaseStatus {
 }
 
 enum CaseAccessStatus {
+  REQUESTED
   GRANTED
   REVOKED
 }

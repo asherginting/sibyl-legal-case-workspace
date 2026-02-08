@@ -43,7 +43,7 @@ export const components: OpenAPIV3.ComponentsObject = {
             status: {
               type: "string",
               nullable: true,
-              enum: ["GRANTED", "REVOKED"],
+              enum: ["REQUESTED", "GRANTED", "REVOKED"],
             },
             grantedAt: {
               type: "string",

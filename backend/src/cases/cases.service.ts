@@ -57,24 +57,45 @@ export async function browseCases(
       orderBy,
       include: {
         owner: true,
-        access: {
-          where: { lawyerId: user.id },
-        },
-        _count: {
-          select: { documents: true },
-        },
+        access: true,
+        _count: { select: { documents: true } },
       },
     }),
     prisma.case.count({ where }),
   ]);
 
   const data: CaseCardDTO[] = cases.map((c) => {
-    const access = c.access[0] || null;
-    const status = access?.status ?? null;
+    let access = null;
 
-    const canOpen = status === CaseAccessStatus.GRANTED;
-    const canWithdraw = status === CaseAccessStatus.REVOKED;
-    const canRequestAccess = status === null;
+    if (user.role === UserRole.LAWYER) {
+      access = c.access.find((a) => a.lawyerId === user.id) || null;
+    }
+
+    if (user.role === UserRole.CLIENT) {
+      access = c.access[0] || null;
+    }
+
+    let actions = {
+      canOpen: false,
+      canRequestAccess: false,
+      canWithdraw: false,
+    };
+
+    if (user.role === UserRole.CLIENT) {
+      actions.canOpen = true;
+    }
+
+    if (user.role === UserRole.LAWYER) {
+      if (!access) {
+        actions.canRequestAccess = true;
+      } else if (access.status === CaseAccessStatus.REQUESTED) {
+        actions.canWithdraw = true;
+      } else if (access.status === CaseAccessStatus.GRANTED) {
+        actions.canOpen = true;
+      } else if (access.status === CaseAccessStatus.REVOKED) {
+        actions.canRequestAccess = true;
+      }
+    }
 
     return {
       id: c.id,
@@ -85,17 +106,11 @@ export async function browseCases(
       createdAt: c.createdAt,
       clientLabel: `Client: ${c.owner.email[0].toUpperCase()}`,
       attachmentsCount: c._count.documents,
-
       access: {
         status: access?.status ?? null,
         grantedAt: access?.createdAt ?? null,
       },
-
-      actions: {
-        canOpen,
-        canWithdraw,
-        canRequestAccess,
-      },
+      actions,
     };
   });
 
@@ -125,12 +140,12 @@ export async function getCaseDetail(
   });
 
   if (!caseRow) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   if (user.role === UserRole.CLIENT) {
     if (caseRow.ownerId !== user.id) {
-      throw { status: 403, message: "FORBIDDEN" };
+      throw { status: 403, message: "Forbidden" };
     }
   }
 
@@ -140,7 +155,7 @@ export async function getCaseDetail(
     );
 
     if (!granted) {
-      throw { status: 404, message: "CASE_NOT_FOUND" };
+      throw { status: 404, message: "Case Not Found" };
     }
   }
 
@@ -160,15 +175,7 @@ export async function getCaseDetail(
 
 export async function requestAccess(caseId: string, user: any) {
   if (user.role !== UserRole.LAWYER) {
-    throw { status: 403, message: "FORBIDDEN" };
-  }
-
-  const legalCase = await prisma.case.findUnique({
-    where: { id: caseId },
-  });
-
-  if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   const existing = await prisma.caseAccess.findUnique({
@@ -180,26 +187,35 @@ export async function requestAccess(caseId: string, user: any) {
     },
   });
 
-  if (existing?.status === CaseAccessStatus.GRANTED) {
-    throw { status: 400, message: "ALREADY_GRANTED" };
+  if (existing) {
+    if (existing.status === CaseAccessStatus.GRANTED) {
+      throw { status: 400, message: "Already Granted" };
+    }
+    if (existing.status === CaseAccessStatus.REQUESTED) {
+      throw { status: 400, message: "Already Requested" };
+    }
   }
 
-  if (!existing) {
-    await prisma.caseAccess.create({
-      data: {
-        caseId,
-        lawyerId: user.id,
-        status: CaseAccessStatus.REVOKED,
-      },
-    });
-  }
+  await prisma.caseAccess.upsert({
+    where: {
+      caseId_lawyerId: { caseId, lawyerId: user.id },
+    },
+    update: {
+      status: CaseAccessStatus.REQUESTED,
+    },
+    create: {
+      caseId,
+      lawyerId: user.id,
+      status: CaseAccessStatus.REQUESTED,
+    },
+  });
 
   return { message: "Access requested" };
 }
 
 export async function withdrawAccess(caseId: string, user: any) {
   if (user.role !== UserRole.LAWYER) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   const existing = await prisma.caseAccess.findUnique({
@@ -212,11 +228,11 @@ export async function withdrawAccess(caseId: string, user: any) {
   });
 
   if (!existing) {
-    throw { status: 400, message: "NO_REQUEST" };
+    throw { status: 400, message: "No Request" };
   }
 
   if (existing.status === CaseAccessStatus.GRANTED) {
-    throw { status: 400, message: "CANNOT_WITHDRAW_GRANTED" };
+    throw { status: 400, message: "Cannot Withdraw Granted" };
   }
 
   await prisma.caseAccess.delete({
@@ -241,11 +257,11 @@ export async function createCase(
   user: { id: string; role: UserRole },
 ) {
   if (user.role !== UserRole.CLIENT) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   if (!input.title || !input.category) {
-    throw { status: 400, message: "INVALID_INPUT" };
+    throw { status: 400, message: "Invalid Input" };
   }
 
   const legalCase = await prisma.case.create({
@@ -274,7 +290,7 @@ export async function updateCase(
   user: { id: string; role: UserRole },
 ) {
   if (user.role !== UserRole.CLIENT) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   const legalCase = await prisma.case.findUnique({
@@ -282,11 +298,11 @@ export async function updateCase(
   });
 
   if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   if (legalCase.ownerId !== user.id) {
-    throw { status: 403, message: "NOT_OWNER" };
+    throw { status: 403, message: "Not Owner" };
   }
 
   await prisma.case.update({
@@ -308,7 +324,7 @@ export async function deleteCase(
   user: { id: string; role: UserRole },
 ) {
   if (user.role !== UserRole.CLIENT) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   const legalCase = await prisma.case.findUnique({
@@ -316,11 +332,11 @@ export async function deleteCase(
   });
 
   if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   if (legalCase.ownerId !== user.id) {
-    throw { status: 403, message: "NOT_OWNER" };
+    throw { status: 403, message: "Not Owner" };
   }
 
   await prisma.case.delete({
@@ -336,27 +352,44 @@ export async function grantAccess(
   user: { id: string; role: UserRole },
 ) {
   if (user.role !== UserRole.CLIENT) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
-  const legalCase = await prisma.case.findUnique({ where: { id: caseId } });
+  const legalCase = await prisma.case.findUnique({
+    where: { id: caseId },
+  });
 
   if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   if (legalCase.ownerId !== user.id) {
-    throw { status: 403, message: "NOT_OWNER" };
+    throw { status: 403, message: "Not Owner" };
   }
 
-  await prisma.caseAccess.upsert({
+  const access = await prisma.caseAccess.findUnique({
     where: {
       caseId_lawyerId: { caseId, lawyerId },
     },
-    update: { status: CaseAccessStatus.GRANTED },
-    create: {
-      caseId,
-      lawyerId,
+  });
+
+  if (!access) {
+    throw { status: 400, message: "No Request From Lawyer" };
+  }
+
+  if (access.status === CaseAccessStatus.GRANTED) {
+    return { message: "Already granted" };
+  }
+
+  if (access.status !== CaseAccessStatus.REQUESTED) {
+    throw { status: 400, message: "Invalid Access State" };
+  }
+
+  await prisma.caseAccess.update({
+    where: {
+      caseId_lawyerId: { caseId, lawyerId },
+    },
+    data: {
       status: CaseAccessStatus.GRANTED,
     },
   });
@@ -370,25 +403,43 @@ export async function revokeAccess(
   user: { id: string; role: UserRole },
 ) {
   if (user.role !== UserRole.CLIENT) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
-  const legalCase = await prisma.case.findUnique({ where: { id: caseId } });
+  const legalCase = await prisma.case.findUnique({
+    where: { id: caseId },
+  });
 
   if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   if (legalCase.ownerId !== user.id) {
-    throw { status: 403, message: "NOT_OWNER" };
+    throw { status: 403, message: "Not Owner" };
   }
 
-  await prisma.caseAccess.delete({
+  const access = await prisma.caseAccess.findUnique({
     where: {
       caseId_lawyerId: { caseId, lawyerId },
     },
   });
 
+  if (!access) {
+    throw { status: 400, message: "No Access to Revoke" };
+  }
+
+  if (access.status !== CaseAccessStatus.GRANTED) {
+    throw { status: 400, message: "Access Not Granted" };
+  }
+
+  await prisma.caseAccess.update({
+    where: {
+      caseId_lawyerId: { caseId, lawyerId },
+    },
+    data: {
+      status: CaseAccessStatus.REVOKED,
+    },
+  });
+
   return { message: "Access revoked" };
 }
-

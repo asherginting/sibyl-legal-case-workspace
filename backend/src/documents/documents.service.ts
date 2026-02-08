@@ -22,14 +22,14 @@ export async function listDocuments(
   });
 
   if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   const isOwner = legalCase.ownerId === user.id;
   const hasAccess = legalCase.access.length > 0;
 
   if (!isOwner && !hasAccess) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   const documents = await prisma.document.findMany({
@@ -73,14 +73,14 @@ export async function uploadDocument(
   });
 
   if (!legalCase) {
-    throw { status: 404, message: "CASE_NOT_FOUND" };
+    throw { status: 404, message: "Case Not Found" };
   }
 
   const isOwner = legalCase.ownerId === user.id;
   const hasAccess = legalCase.access.length > 0;
 
   if (!isOwner && !hasAccess) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   await prisma.document.create({
@@ -118,7 +118,7 @@ export async function downloadDocument(
   });
 
   if (!document) {
-    throw { status: 404, message: "DOCUMENT_NOT_FOUND" };
+    throw { status: 404, message: "Document Not Found" };
   }
 
   const legalCase = document.case;
@@ -126,13 +126,13 @@ export async function downloadDocument(
   const hasAccess = legalCase.access.length > 0;
 
   if (!isOwner && !hasAccess) {
-    throw { status: 403, message: "FORBIDDEN" };
+    throw { status: 403, message: "Forbidden" };
   }
 
   const filePath = path.join(process.cwd(), "uploads", document.storedName);
 
   if (!fs.existsSync(filePath)) {
-    throw { status: 404, message: "FILE_NOT_FOUND" };
+    throw { status: 404, message: "File Not Found" };
   }
 
   return {

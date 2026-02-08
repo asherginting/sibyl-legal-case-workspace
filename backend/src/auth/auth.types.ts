@@ -1,9 +1,9 @@
 export interface JwtPayload {
-  sub: string
-  role: 'CLIENT' | 'LAWYER'
+  sub: string;
+  role: "CLIENT" | "LAWYER";
 }
 
 export interface AuthUser {
-  id: string
-  role: 'CLIENT' | 'LAWYER'
+  id: string;
+  role: "CLIENT" | "LAWYER";
 }

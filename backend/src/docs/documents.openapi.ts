@@ -4,7 +4,9 @@ export const documentsPaths: OpenAPIV3.PathsObject = {
   "/cases/{id}/documents": {
     get: {
       tags: ["Documents"],
-      summary: "List documents in a case",
+      summary: "List documents in a case (Client owner or Lawyer with access)",
+      description:
+        "List documents for a case owned by the client or accessible to the lawyer.",
       security: [{ cookieAuth: [] }],
       parameters: [
         {
@@ -43,9 +45,9 @@ export const documentsPaths: OpenAPIV3.PathsObject = {
 
     post: {
       tags: ["Documents"],
-      summary: "Upload document to case",
+      summary: "Upload document to case (Client only)",
       description:
-        "Upload a document (PDF, DOCX, PNG, JPG). Max size 5MB.",
+        "Upload a document to a case owned by the client (PDF, DOCX, PNG, JPG). Max size 5MB.",
       security: [{ cookieAuth: [] }],
       parameters: [
         {
@@ -97,7 +99,9 @@ export const documentsPaths: OpenAPIV3.PathsObject = {
   "/cases/{id}/documents/{documentId}": {
     get: {
       tags: ["Documents"],
-      summary: "Download document",
+      summary: "Download document (Client owner or Lawyer with access)",
+      description:
+        "Download a document from a case owned by the client or accessible to the lawyer.",
       security: [{ cookieAuth: [] }],
       parameters: [
         {

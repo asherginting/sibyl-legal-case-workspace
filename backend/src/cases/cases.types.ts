@@ -19,12 +19,10 @@ export interface CaseCardDTO {
   createdAt: Date;
   clientLabel: string;
   attachmentsCount: number;
-
   access: {
     status: CaseAccessStatus | null;
     grantedAt: Date | null;
   };
-
   actions: {
     canOpen: boolean;
     canRequestAccess: boolean;
@@ -39,13 +37,11 @@ export interface CaseDetailDTO {
   category: string;
   jurisdiction: string;
   createdAt: Date;
-
   summary: string;
   parties: {
     name: string;
     role: string;
   }[];
-
   keyEvents: {
     date: string;
     description: string;

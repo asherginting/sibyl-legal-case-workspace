@@ -9,12 +9,13 @@ export const openApiSpec: OpenAPIV3.Document = {
   info: {
     title: "Sibyl Legal Case Workspace API",
     version: "1.0.0",
-    description: "Sibyl Legal Case Workspace API Documentation v1.0.0 - by Asher Azriel Ginting",
+    description:
+      "Sibyl Legal Case Workspace API Documentation v1.0.0 - by Asher Azriel Ginting",
   },
   servers: [
     {
-      url: "http://localhost:4000",
-      description: "Local server",
+      url: process.env.BACKEND_URL || "http://localhost:4000",
+      description: "Production Environment",
     },
   ],
   paths: {

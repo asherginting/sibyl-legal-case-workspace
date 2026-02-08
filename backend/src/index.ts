@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 
 import { loginHandler, meHandler, logoutHandler } from "./auth/auth.controller";
 import { requireAuth } from "./auth/auth.middleware";
+import rateLimit from "express-rate-limit";
 import {
   browseCasesHandler,
   getCaseDetailHandler,
@@ -28,9 +29,15 @@ import { openApiSpec } from "./docs/openapi";
 dotenv.config();
 const app = express();
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+});
+
+app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   }),
 );
@@ -45,9 +52,9 @@ app.use(
       withCredentials: true,
       persistAuthorization: true,
     },
-  })
+  }),
 );
-app.post("/auth/login", loginHandler);
+app.post("/auth/login", loginLimiter, loginHandler);
 app.post("/auth/logout", logoutHandler);
 app.get("/auth/me", requireAuth, meHandler);
 app.get("/cases", requireAuth, browseCasesHandler);
@@ -55,8 +62,18 @@ app.post("/cases", requireAuth, createCaseHandler);
 app.get("/cases/:id", requireAuth, getCaseDetailHandler);
 app.patch("/cases/:id", requireAuth, updateCaseHandler);
 app.delete("/cases/:id", requireAuth, deleteCaseHandler);
-app.post("/cases/:id/access/request", requireAuth, requestAccessHandler);
-app.post("/cases/:id/access/withdraw", requireAuth, withdrawAccessHandler);
+app.post("/cases/:id/lawyer/request-access", requireAuth, requestAccessHandler);
+app.delete(
+  "/cases/:id/lawyer/withdraw-access",
+  requireAuth,
+  withdrawAccessHandler,
+);
+app.post("/cases/:id/client/grant-access", requireAuth, grantAccessHandler);
+app.delete(
+  "/cases/:id/client/revoke-access/:lawyerId",
+  requireAuth,
+  revokeAccessHandler,
+);
 app.get("/cases/:id/documents", requireAuth, listDocumentsHandler);
 app.post(
   "/cases/:id/documents",
@@ -67,16 +84,14 @@ app.post(
 app.get(
   "/cases/:id/documents/:documentId",
   requireAuth,
-  downloadDocumentHandler
+  downloadDocumentHandler,
 );
-app.post("/cases/:id/access/grant", requireAuth, grantAccessHandler);
-app.delete("/cases/:id/access/:lawyerId", requireAuth, revokeAccessHandler);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`API running on port ${PORT}`);
 });

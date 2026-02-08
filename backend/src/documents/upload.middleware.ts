@@ -33,7 +33,7 @@ export const upload = multer({
   },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-      cb(new Error("INVALID_FILE_TYPE"));
+      cb(new Error("Invalid File Type"));
       return;
     }
     cb(null, true);
