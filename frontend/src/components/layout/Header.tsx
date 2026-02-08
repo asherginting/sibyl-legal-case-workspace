@@ -1,7 +1,9 @@
 "use client";
 
 import { Notification, Search } from "@/icons";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useLogout } from "@/hooks/useLogout";
+import { useProfile } from "@/hooks/useProfile";
 
 const TITLE_MAP: Record<string, string> = {
   "/browse-cases": "Browse Cases",
@@ -17,24 +19,12 @@ const PLACEHOLDER_MAP: Record<string, string> = {
 
 export default function Header() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const title = TITLE_MAP[pathname] ?? "";
   const placeholder = PLACEHOLDER_MAP[pathname] ?? "";
 
-  async function handleLogout() {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-    } finally {
-      router.replace("/sign-in");
-    }
-  }
+  const { logout } = useLogout();
+  const { roleInitial } = useProfile();
 
   return (
     <div className="py-4 px-6 border-b border-faded flex items-center justify-between">
@@ -51,10 +41,10 @@ export default function Header() {
         <div className="h-6 border-l border-faded" />
         <Notification className="w-5 h-5 text-muted" />
         <div className="w-8 h-8 rounded-full bg-sage flex items-center justify-center text-xs font-medium">
-          P
+          {roleInitial ?? "?"}
         </div>
         <button
-          onClick={handleLogout}
+          onClick={logout}
           title="Logout"
           className="p-1 rounded hover:bg-faded transition cursor-pointer"
         >

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Newsreader } from "next/font/google";
+import { AuthProvider } from "@/providers/AuthProvider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -35,7 +36,9 @@ export default function RootLayout({
           antialiased
         `}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

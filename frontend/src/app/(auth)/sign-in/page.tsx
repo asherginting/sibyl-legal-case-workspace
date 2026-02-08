@@ -1,42 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { SibylLogo } from "@/icons";
+import { useLogin } from "@/hooks/useLogin";
 
-export default function SignInPage() {
-  const router = useRouter();
+export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { login, loading, error } = useLogin();
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Invalid credentials");
-      }
-
-      router.replace("/browse-cases");
-    } catch (err) {
-      console.log(err);
-      setError("Invalid email or password");
-    } finally {
-      setLoading(false);
-    }
+    login(email, password);
   }
 
   return (
@@ -82,7 +57,9 @@ export default function SignInPage() {
               "0px 0px 0px 1px #FF6A2B, 0px 1px 2px 0px rgba(18,17,15,0.24)",
           }}
         >
-          <p className="text-sm text-white">{loading ? "Signing in..." : "Sign in"}</p>
+          <p className="text-sm text-white">
+            {loading ? "Signing in..." : "Sign in"}
+          </p>
         </button>
       </form>
     </div>

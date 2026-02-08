@@ -1,36 +1,21 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
-          credentials: "include",
-        });
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token");
 
-        if (res.status === 401) {
-          router.replace("/sign-in");
-          return;
-        }
-      } catch {
-        router.replace("/sign-in");
-      }
-    }
-
-    checkAuth();
-  }, [router]);
+  if (!token) {
+    redirect("/sign-in");
+  }
 
   return (
     <div className="flex min-h-screen bg-weak">
