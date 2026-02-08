@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { PaperClip, People } from "@/icons";
 
@@ -29,6 +29,28 @@ type CaseCardProps = {
   onWithdraw?: (id: string) => void;
 };
 
+function formatPostedAgo(isoDate: string) {
+  const date = new Date(isoDate);
+  const now = new Date();
+
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return "Posted today";
+  if (diffDays === 1) return "Posted 1 day ago";
+  return `Posted ${diffDays} days ago`;
+}
+
+function formatDate(isoDate: string | null) {
+  if (!isoDate) return "";
+
+  return new Date(isoDate).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export function CaseCard({
   data,
   onOpenCase,
@@ -49,7 +71,9 @@ export function CaseCard({
           </span>
           <span className="text-muted text-xs">{data.jurisdiction}</span>
         </div>
-        <span className="text-muted text-xs">{data.createdAt}</span>
+        <span className="text-muted text-xs">
+          {formatPostedAgo(data.createdAt)}
+        </span>
       </div>
       <div className="w-full">
         <h3 className="text-sm font-medium text-black-soft line-clamp-2">
@@ -76,7 +100,7 @@ export function CaseCard({
                 Approved
               </span>
               <span className="text-muted">
-                Access granted on {access.grantedAt}
+                Access granted on {formatDate(access.grantedAt)}
               </span>
             </>
           )}
@@ -86,7 +110,7 @@ export function CaseCard({
                 Pending approval
               </span>
               <span className="text-muted">
-                Requested on {access.grantedAt}
+                Requested on {formatDate(access.grantedAt)}
               </span>
             </>
           )}
@@ -102,7 +126,7 @@ export function CaseCard({
           {actions.canOpen && (
             <button
               onClick={() => onOpenCase?.(data.id)}
-              className="inline-flex items-center justify-center min-w-20 h-8 gap-1 rounded-sm border border-faded bg-white px-3  text-xs text-black-soft hover:bg-weak"
+              className="inline-flex items-center justify-center min-w-20 h-8 gap-1 rounded-sm border border-faded bg-white px-3  text-xs text-black-soft hover:bg-weak cursor-pointer"
             >
               Open Case
             </button>
@@ -110,7 +134,7 @@ export function CaseCard({
           {actions.canRequestAccess && (
             <button
               onClick={() => onRequestAccess?.(data.id)}
-              className="inline-flex items-center justify-center min-w-20 w-30.75 h-8 gap-1 rounded-sm border border-white/10 bg-brand px-3 text-xs text-white shadow-[0_0_0_1px_#FF6A2B,0_1px_2px_0_#12110F3D] hover:opacity-90"
+              className="inline-flex items-center justify-center min-w-20 w-30.75 h-8 gap-1 rounded-sm border border-white/10 bg-brand px-3 text-xs text-white shadow-[0_0_0_1px_#FF6A2B,0_1px_2px_0_#12110F3D] hover:opacity-90 cursor-pointer"
             >
               Request Access
             </button>
@@ -118,7 +142,7 @@ export function CaseCard({
           {actions.canWithdraw && (
             <button
               onClick={() => onWithdraw?.(data.id)}
-              className="inline-flex items-center justify-center min-w-20 h-8 gap-1 rounded-sm border border-faded bg-white px-3  text-xs text-black-soft hover:bg-weak"
+              className="inline-flex items-center justify-center min-w-20 h-8 gap-1 rounded-sm border border-faded bg-white px-3  text-xs text-black-soft hover:bg-weak cursor-pointer"
             >
               Cancel
             </button>

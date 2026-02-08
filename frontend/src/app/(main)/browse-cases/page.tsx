@@ -5,97 +5,53 @@ import {
   CasesFilterBar,
   FilterParams,
 } from "@/components/cases/CasesFilterBar";
-import { CaseCard, CaseCardData } from "@/components/cases/CaseCard";
-import { useRouter } from "next/navigation";
-
-const dummyCases: CaseCardData[] = [
-  {
-    id: "1",
-    title: "Potential Breach of Employment Contract",
-    description:
-      "Client was terminated abruptly after restructuring. Seeking legal advice on recovery of unpaid salary.",
-    category: "Employment Law",
-    jurisdiction: "Singapore",
-    createdAt: "2025-10-15",
-
-    clientLabel: "Client: F",
-    attachmentsCount: 2,
-
-    access: {
-      status: "GRANTED",
-      grantedAt: "15 Oct 2025",
-    },
-
-    actions: {
-      canOpen: true,
-      canRequestAccess: false,
-      canWithdraw: false,
-    },
-  },
-  {
-    id: "2",
-    title: "Child Custody & Access Arrangement",
-    description:
-      "A 34-year-old female professional was dismissed without notice following a company restructuring.",
-    category: "Family Law",
-    jurisdiction: "Singapore",
-    createdAt: "2025-10-10",
-
-    clientLabel: "Client: M",
-    attachmentsCount: 1,
-
-    access: {
-      status: null,
-      grantedAt: null,
-    },
-
-    actions: {
-      canOpen: false,
-      canRequestAccess: true,
-      canWithdraw: false,
-    },
-  },
-  {
-    id: "3",
-    title: "Non-Payment in Service Agreement",
-    description:
-      "A local SME owner reports non-payment from a client after project completion.",
-    category: "Commercial",
-    jurisdiction: "Singapore",
-    createdAt: "2025-10-12",
-
-    clientLabel: "Client: F",
-    attachmentsCount: 3,
-
-    access: {
-      status: "REQUESTED",
-      grantedAt: "12 Oct 2025",
-    },
-
-    actions: {
-      canOpen: false,
-      canRequestAccess: false,
-      canWithdraw: true,
-    },
-  },
-];
+import { CaseCard } from "@/components/cases/CaseCard";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useGetBrowseCases } from "@/hooks/useGetBrowseCases";
+import { WithdrawAccessModal } from "@/components/cases/WithdrawAccessModal";
+import { useRequestCaseAccess } from "@/hooks/useRequestCaseAccess";
+import { useWithdrawCaseAccess } from "@/hooks/useWithdrawCaseAccess";
 
 export default function BrowseCases() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search") ?? "";
+  const [withdrawCaseId, setWithdrawCaseId] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterParams>({});
+  const { cases, loading, error, refetch } = useGetBrowseCases({
+    ...filters,
+    limit: 6,
+    search,
+  });
+  const { requestAccess } = useRequestCaseAccess();
+  const { withdrawAccess } = useWithdrawCaseAccess();
 
   function handleOpenCase(id: string) {
     router.push(`/browse-cases/${id}`);
   }
 
-  function handleRequestAccess(id: string) {
-    console.log("Request access for case:", id);
+  async function handleRequestAccess(id: string) {
+    try {
+      await requestAccess(id);
+      await refetch();
+    } catch {}
   }
 
   function handleWithdraw(id: string) {
-    console.log("Open withdraw modal for case:", id);
+    setWithdrawCaseId(id);
   }
 
+  async function handleConfirmWithdraw() {
+    if (!withdrawCaseId) return;
+
+    try {
+      await withdrawAccess(withdrawCaseId);
+      await refetch();
+    } catch {
+    } finally {
+      setWithdrawCaseId(null);
+    }
+  }
   return (
     <div className="flex flex-col gap-3">
       <CasesFilterBar
@@ -103,6 +59,7 @@ export default function BrowseCases() {
         category={filters.category}
         posted={filters.posted}
         sort={filters.sort}
+        total={cases.length}
         onChange={(next) =>
           setFilters((prev) => ({
             ...prev,
@@ -110,17 +67,38 @@ export default function BrowseCases() {
           }))
         }
       />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2">
-        {dummyCases.map((item) => (
-          <CaseCard
-            key={item.id}
-            data={item}
-            onOpenCase={handleOpenCase}
-            onRequestAccess={handleRequestAccess}
-            onWithdraw={handleWithdraw}
-          />
-        ))}
-      </div>
+
+      {loading && <div className="text-sm text-muted">Loading cases...</div>}
+
+      {error && <div className="text-sm text-red-500">{error}</div>}
+
+      {!loading && !error && cases.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-sm text-muted">
+          Case not found!
+        </div>
+      )}
+
+      {cases.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2">
+          {cases.map((item) => (
+            <CaseCard
+              key={item.id}
+              data={item}
+              onOpenCase={handleOpenCase}
+              onRequestAccess={handleRequestAccess}
+              onWithdraw={handleWithdraw}
+            />
+          ))}
+        </div>
+      )}
+
+      <WithdrawAccessModal
+        open={withdrawCaseId !== null}
+        title="Withdraw access request?"
+        description="You’ll be removed from the client’s list of requesting lawyers. You can request access again later."
+        onCancel={() => setWithdrawCaseId(null)}
+        onWithdraw={handleConfirmWithdraw}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ export type FilterParams = {
 
 type CasesFilterBarProps = FilterParams & {
   onChange: (params: FilterParams) => void;
+  total?: number;
 };
 
 type Option = {
@@ -94,6 +95,7 @@ export function CasesFilterBar({
   category,
   posted,
   sort,
+  total,
   onChange,
 }: CasesFilterBarProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -185,9 +187,11 @@ export function CasesFilterBar({
           ]}
         />
 
-        <span className="ml-3 text-sm font-normal text-muted">
-          Showing 4 cases
-        </span>
+        {typeof total === "number" && (
+          <span className="ml-3 text-sm font-normal text-muted">
+            Showing {total} cases
+          </span>
+        )}
       </div>
       <Dropdown
         id="sort"

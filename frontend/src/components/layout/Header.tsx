@@ -1,7 +1,7 @@
 "use client";
 
 import { Notification, Search } from "@/icons";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLogout } from "@/hooks/useLogout";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -18,6 +18,8 @@ const PLACEHOLDER_MAP: Record<string, string> = {
 };
 
 export default function Header() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
 
   const title = TITLE_MAP[pathname] ?? "";
@@ -35,7 +37,20 @@ export default function Header() {
           <input
             type="text"
             placeholder={placeholder}
+            defaultValue={searchParams.get("search") ?? ""}
             className="flex-1 text-sm outline-none bg-transparent placeholder:text-muted text-muted"
+            onChange={(e) => {
+              const value = e.target.value;
+              const params = new URLSearchParams(searchParams.toString());
+
+              if (value) {
+                params.set("search", value);
+              } else {
+                params.delete("search");
+              }
+
+              router.replace(`${pathname}?${params.toString()}`);
+            }}
           />
         </div>
         <div className="h-6 border-l border-faded" />
