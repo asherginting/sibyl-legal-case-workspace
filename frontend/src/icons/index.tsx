@@ -6,6 +6,8 @@ import Search from "./Search";
 import Notification from "./Notification";
 import ChevronDown from "./ChevronDown";
 import SortDesc from "./SortDesc";
+import People from "./People";
+import PaperClip from "./PaperClip";
 
 export {
   SibylLogo,
@@ -16,4 +18,6 @@ export {
   Notification,
   ChevronDown,
   SortDesc,
+  People,
+  PaperClip,
 };
