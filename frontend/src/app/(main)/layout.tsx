@@ -23,7 +23,7 @@ export default async function MainLayout({
       <div className="flex-1 px-3 py-2">
         <div className="bg-white border border-faded rounded-lg h-full flex flex-col">
           <Header />
-          <div className="px-6 py-4 flex-1">{children}</div>
+          <div className="px-6 py-6 flex-1">{children}</div>
         </div>
       </div>
     </div>

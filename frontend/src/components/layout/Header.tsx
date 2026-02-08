@@ -41,7 +41,7 @@ export default function Header() {
         <div className="h-6 border-l border-faded" />
         <Notification className="w-5 h-5 text-muted" />
         <div className="w-8 h-8 rounded-full bg-sage flex items-center justify-center text-xs font-medium">
-          {roleInitial ?? "?"}
+          {roleInitial ?? "P"}
         </div>
         <button
           onClick={logout}
