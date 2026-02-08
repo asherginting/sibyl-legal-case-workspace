@@ -30,6 +30,14 @@ export async function loginHandler(req: Request, res: Response) {
   }
 }
 
+export function meHandler(req: Request, res: Response) {
+  return res.json({
+    response_code: 200,
+    response_message: "Success",
+    data: { user: (req as any).user },
+  });
+}
+
 export function logoutHandler(req: Request, res: Response) {
   res.clearCookie("auth_token", {
     httpOnly: true,
